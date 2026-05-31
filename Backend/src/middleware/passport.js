@@ -1,8 +1,18 @@
 // middleware/passport.js
-const GitHubStrategy = require('passport-github2').Strategy;
 const User = require('../models/User');
 
 module.exports = (passport) => {
+  if (!process.env.GITHUB_CLIENT_ID || !process.env.GITHUB_CLIENT_SECRET) {
+    console.warn('⚠️  GitHub OAuth баптанбаған — өткізіп жіберілді');
+    passport.serializeUser((user, done) => done(null, user._id));
+    passport.deserializeUser(async (id, done) => {
+      try { const user = await User.findById(id); done(null, user); }
+      catch (err) { done(err, null); }
+    });
+    return;
+  }
+
+  const GitHubStrategy = require('passport-github2').Strategy;
   passport.use(new GitHubStrategy({
     clientID:     process.env.GITHUB_CLIENT_ID,
     clientSecret: process.env.GITHUB_CLIENT_SECRET,
