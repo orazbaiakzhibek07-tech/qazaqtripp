@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="kk">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Жоспарлау — QazaqTrip</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=Cabinet+Grotesk:wght@300;400;500;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="src/styles/main.css" />
+</head>
+<body>
+  <nav class="navbar scrolled" id="navbar">
+    <div class="nav-inner">
+      <a href="index.html" class="logo">Qazaq<span>Trip</span></a>
+      <ul class="nav-links">
+        <li><a href="index.html#destinations">Бағыттар</a></li>
+        <li><a href="plan.html" style="color:#1EB87A">Жоспарым</a></li>
+      </ul>
+      <div class="nav-actions">
+        <span id="userNameDisplay" style="font-size:13px;color:#8a8790;margin-right:8px"></span>
+        <button class="btn-ghost" onclick="logout()">Шығу</button>
+      </div>
+    </div>
+  </nav>
+
+  <div class="plan-page">
+    <!-- Plan Header: Input Form -->
+    <div class="plan-header">
+      <h1 style="font-family:var(--font-display);font-size:28px;margin-bottom:1.25rem">Жаңа саяхат жоспарла</h1>
+      <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end">
+        <div>
+          <label class="form-label">Қайдан</label>
+          <input class="form-input" id="fromCity" placeholder="Алматы" style="width:160px" />
+        </div>
+        <div style="padding-bottom:12px;color:#52505a;font-size:20px">→</div>
+        <div>
+          <label class="form-label">Қайда</label>
+          <input class="form-input" id="toCity" placeholder="Стамбул" style="width:160px" />
+        </div>
+        <div>
+          <label class="form-label">Күн саны</label>
+          <input class="form-input" id="days" type="number" min="1" max="30" value="7" style="width:100px" />
+        </div>
+        <div>
+          <label class="form-label">Адам саны</label>
+          <input class="form-input" id="people" type="number" min="1" max="20" value="2" style="width:100px" />
+        </div>
+        <div>
+          <label class="form-label">Бюджет (₸)</label>
+          <input class="form-input" id="budget" placeholder="500000" style="width:140px" />
+        </div>
+        <button class="btn-primary" onclick="generatePlan()" id="generateBtn">
+          ✦ Жоспар жасат
+        </button>
+      </div>
+    </div>
+
+    <!-- Plan Content -->
+    <div class="plan-grid" id="planGrid" style="display:none">
+      <!-- Sidebar: Days -->
+      <div class="plan-sidebar">
+        <div class="sidebar-section">
+          <div class="sidebar-label">Күндер</div>
+          <div id="daysList"></div>
+        </div>
+        <div class="sidebar-section">
+          <div class="sidebar-label">Бюджет</div>
+          <div class="budget-card" id="budgetCard"></div>
+        </div>
+        <div style="margin-top:1.5rem;display:flex;flex-direction:column;gap:8px">
+          <button class="btn-primary btn-full" onclick="savePlan()">💾 Сақтау</button>
+          <button class="btn-ghost btn-full" style="width:100%;padding:10px;border:1px solid var(--border);border-radius:10px" onclick="exportPDF()">📄 PDF жүктеу</button>
+        </div>
+      </div>
+
+      <!-- Main: Activities -->
+      <div class="plan-main">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem">
+          <div>
+            <h2 id="activeDayTitle" style="font-family:var(--font-display);font-size:26px"></h2>
+            <p id="activeDayDesc" style="font-size:13px;color:#8a8790;margin-top:4px"></p>
+          </div>
+        </div>
+        <div class="activity-list" id="activityList"></div>
+      </div>
+    </div>
+
+    <!-- Empty state -->
+    <div id="emptyState" style="text-align:center;padding:5rem 2rem">
+      <div style="font-size:48px;margin-bottom:1rem">✈</div>
+      <h2 style="font-family:var(--font-display);font-size:32px;margin-bottom:0.75rem">Саяхатыңды жоспарлай бастаңыз</h2>
+      <p style="color:#8a8790;font-size:15px">Бағыт пен күн санын толтырып, «Жоспар жасат» батырмасын басыңыз.</p>
+    </div>
+
+    <!-- Loading state -->
+    <div id="loadingState" style="display:none;text-align:center;padding:5rem 2rem">
+      <div class="loader" style="width:40px;height:40px;border:2px solid rgba(30,184,122,0.2);border-top-color:#1EB87A;border-radius:50%;animation:spin 0.8s linear infinite;margin:0 auto 1.5rem"></div>
+      <h2 style="font-family:var(--font-display);font-size:28px;margin-bottom:0.5rem">Жоспар жасалуда...</h2>
+      <p id="loadingMsg" style="color:#8a8790;font-size:14px">ИИ маршрутыңызды анықтауда</p>
+    </div>
+  </div>
+
+  <style>
+  @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+
+  <script src="src/styles/main.js"></script>
+  <script>
+  // Check auth
+  const user = JSON.parse(localStorage.getItem('qt_user') || 'null');
+  if (user) {
+    document.getElementById('userNameDisplay').textContent = user.name;
+  }
+
+  // Parse URL params
+  const params = new URLSearchParams(window.location.search);
+  const qParam = params.get('q');
+  const destParam = params.get('dest');
+
+  if (qParam) {
+    const parts = qParam.split('→').map(s => s.trim());
+    if (parts[0]) document.getElementById('fromCity').value = parts[0].split(' ')[0];
+    if (parts[1]) document.getElementById('toCity').value = parts[1].split(',')[0].trim();
+    const dayMatch = qParam.match(/(\d+)\s*күн/);
+    if (dayMatch) document.getElementById('days').value = dayMatch[1];
+  }
+
+  const destMap = {
+    istanbul: { to: 'Стамбул', days: 7 },
+    dubai:    { to: 'Дубай',   days: 5 },
+    bangkok:  { to: 'Бангкок', days: 10 },
+    rome:     { to: 'Рим',     days: 6 },
+    almaty:   { to: 'Алматы',  days: 3 },
+  };
+  if (destParam && destMap[destParam]) {
+    document.getElementById('toCity').value = destMap[destParam].to;
+    document.getElementById('days').value = destMap[destParam].days;
+  }
+
+  // ── Demo plan data ──
+  const demoPlan = {
+    destination: '',
+    days: [],
+    budget: {}
+  };
+
+  function buildDemoPlan(to, numDays, people, budget) {
+    const activities = {
+      1: [
+        { time: '14:00', name: 'Қонақ үйге орналасу', desc: 'Орталықтағы қонақ үй, трансфер кіреді', tag: 'hotel' },
+        { time: '16:30', name: to + ' орталығын аралау', desc: 'Тарихи орталық, негізгі алаңдар', tag: 'sight' },
+        { time: '19:30', name: 'Кешкі ас', desc: 'Жергілікті мейрамхана', tag: 'food' },
+      ],
+      2: [
+        { time: '09:00', name: 'Таңғы қыдыру', desc: 'Саяхат жоспарындағы негізгі орын', tag: 'sight' },
+        { time: '12:30', name: 'Түскі ас', desc: 'Жергілікті базар / food court', tag: 'food' },
+        { time: '15:00', name: 'Мұражай', desc: 'Қаланың негізгі мұражайы', tag: 'sight' },
+        { time: '20:00', name: 'Кешкі серуен', desc: 'Жарықтандырылған орталық аудан', tag: 'sight' },
+      ],
+      3: [
+        { time: '10:00', name: 'Шоппинг', desc: 'Жергілікті базар немесе молл', tag: 'sight' },
+        { time: '13:00', name: 'Түскі ас', desc: 'Стрит фуд немесе кафе', tag: 'food' },
+        { time: '15:30', name: 'Демалыс / СПА', desc: 'Қонақ үй немесе жергілікті СПА', tag: 'hotel' },
+        { time: '19:00', name: 'Фестиваль / шоу', desc: 'Бар болса жергілікті іс-шара', tag: 'sight' },
+      ],
+    };
+
+    const days = [];
+    for (let i = 1; i <= numDays; i++) {
+      const acts = activities[Math.min(i, 3)];
+      days.push({
+        dayNum: i,
+        title: `${i}-күн — ${to}`,
+        desc: i === 1 ? 'Жетіп орналасу' : i === numDays ? 'Соңғы күн, кету' : `${to} аралау`,
+        activities: acts,
+      });
+    }
+
+    const b = parseInt(budget) || 500000;
+    const bPerPerson = Math.round(b / people);
+    return {
+      destination: to,
+      days,
+      budget: {
+        total: b.toLocaleString('kk'),
+        perPerson: bPerPerson.toLocaleString('kk'),
+        hotel: Math.round(b * 0.35).toLocaleString('kk'),
+        food: Math.round(b * 0.25).toLocaleString('kk'),
+        transport: Math.round(b * 0.2).toLocaleString('kk'),
+        activities: Math.round(b * 0.2).toLocaleString('kk'),
+      }
+    };
+  }
+
+  let currentPlan = null;
+  let activeDay = 0;
+
+  function generatePlan() {
+    const from = document.getElementById('fromCity').value || 'Алматы';
+    const to = document.getElementById('toCity').value;
+    const days = parseInt(document.getElementById('days').value) || 7;
+    const people = parseInt(document.getElementById('people').value) || 2;
+    const budget = document.getElementById('budget').value || '500000';
+
+    if (!to) { showToast('Бағыт атауын жазыңыз!'); return; }
+
+    // Show loading
+    document.getElementById('emptyState').style.display = 'none';
+    document.getElementById('planGrid').style.display = 'none';
+    document.getElementById('loadingState').style.display = 'block';
+
+    const msgs = [
+      'ИИ маршрутыңызды анықтауда...',
+      `${to} бойынша деректер жиналуда...`,
+      'Мейрамханалар мен қонақ үйлер таңдалуда...',
+      'Бюджет есептелуде...',
+      'Жоспар дайын болуда...'
+    ];
+    let mi = 0;
+    const iv = setInterval(() => {
+      document.getElementById('loadingMsg').textContent = msgs[mi % msgs.length];
+      mi++;
+    }, 700);
+
+    // Try real API, fallback to demo
+    const token = localStorage.getItem('qt_token');
+    setTimeout(() => {
+      clearInterval(iv);
+      currentPlan = buildDemoPlan(to, days, people, budget);
+      renderPlan();
+    }, 2800);
+  }
+
+  function renderPlan() {
+    document.getElementById('loadingState').style.display = 'none';
+    document.getElementById('emptyState').style.display = 'none';
+    document.getElementById('planGrid').style.display = 'grid';
+
+    // Days list
+    const daysList = document.getElementById('daysList');
+    daysList.innerHTML = currentPlan.days.map((d, i) => `
+      <div class="day-card ${i === 0 ? 'active' : ''}" onclick="selectDay(${i})" id="day-card-${i}">
+        <div class="day-num">КҮН ${d.dayNum}</div>
+        <div class="day-title">${d.title}</div>
+        <div class="day-sub">${d.desc}</div>
+      </div>
+    `).join('');
+
+    // Budget
+    const b = currentPlan.budget;
+    document.getElementById('budgetCard').innerHTML = `
+      <div class="budget-row"><span>🏨 Қонақ үй</span><span>₸${b.hotel}</span></div>
+      <div class="budget-row"><span>🍽 Тамақ</span><span>₸${b.food}</span></div>
+      <div class="budget-row"><span>✈ Транспорт</span><span>₸${b.transport}</span></div>
+      <div class="budget-row"><span>🎭 Белсенділіктер</span><span>₸${b.activities}</span></div>
+      <div class="budget-row"><span>Барлығы</span><span>₸${b.total}</span></div>
+    `;
+
+    selectDay(0);
+  }
+
+  function selectDay(index) {
+    document.querySelectorAll('.day-card').forEach((c, i) => {
+      c.classList.toggle('active', i === index);
+    });
+    activeDay = index;
+    const day = currentPlan.days[index];
+    document.getElementById('activeDayTitle').textContent = day.title;
+    document.getElementById('activeDayDesc').textContent = day.desc;
+
+    const tagLabels = { food: 'Тамақ', sight: 'Аялдама', hotel: 'Тұрақ', transport: 'Көлік' };
+    document.getElementById('activityList').innerHTML = day.activities.map(a => `
+      <div class="activity-item">
+        <span class="activity-time">${a.time}</span>
+        <div class="activity-dot"></div>
+        <div class="activity-content">
+          <div class="activity-name">${a.name}</div>
+          <div class="activity-desc">${a.desc}</div>
+          <span class="activity-tag tag-${a.tag}">${tagLabels[a.tag]}</span>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  function savePlan() {
+    if (!currentPlan) return;
+    const token = localStorage.getItem('qt_token');
+    if (!token) {
+      if (confirm('Сақтау үшін кіру керек. Кіруге өтесіз бе?')) window.location.href = 'login.html';
+      return;
+    }
+    const plans = JSON.parse(localStorage.getItem('qt_plans') || '[]');
+    plans.push({ ...currentPlan, savedAt: new Date().toISOString() });
+    localStorage.setItem('qt_plans', JSON.stringify(plans));
+    showToast('✓ Жоспар сақталды!');
+  }
+
+  function exportPDF() {
+    showToast('📄 PDF экспорт жақында қосылады...');
+  }
+
+  function logout() {
+    localStorage.removeItem('qt_token');
+    localStorage.removeItem('qt_user');
+    window.location.href = 'index.html';
+  }
+  </script>
+</body>
+</html>

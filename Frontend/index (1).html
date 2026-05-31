@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="kk">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>QazaqTrip — Саяхатыңды жоспарла</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=Cabinet+Grotesk:wght@300;400;500;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="src/styles/main.css" />
+</head>
+<body>
+
+  <!-- NAVBAR -->
+  <nav class="navbar" id="navbar">
+    <div class="nav-inner">
+      <a href="index.html" class="logo">Qazaq<span>Trip</span></a>
+      <ul class="nav-links">
+        <li><a href="#destinations">Бағыттар</a></li>
+        <li><a href="plan.html">Жоспарлау</a></li>
+        <li><a href="#features">Мүмкіндіктер</a></li>
+      </ul>
+      <div class="nav-actions">
+        <a href="login.html" class="btn-ghost">Кіру</a>
+        <a href="register.html" class="btn-primary">Тіркелу</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero-bg">
+      <div class="orb orb-1"></div>
+      <div class="orb orb-2"></div>
+      <div class="grid-lines"></div>
+    </div>
+    <div class="hero-content">
+      <div class="hero-badge">✦ ИИ-мен жарақталған</div>
+      <h1 class="hero-title">
+        Арман саяхатың<br/>
+        <em>бір рет басу арқылы</em>
+      </h1>
+      <p class="hero-sub">
+        Маршрут, қонақ үй, бюджет — бәрін жасанды интеллект<br/>
+        минутта жоспарлайды. Тек жер атауын жаз.
+      </p>
+      <div class="search-wrapper">
+        <div class="search-bar">
+          <span class="search-icon">⊹</span>
+          <input type="text" id="searchInput" placeholder="Мысалы: Алматы → Стамбул, 7 күн, 2 адам..." />
+          <button class="search-btn" onclick="handleSearch()">Жоспарла</button>
+        </div>
+        <div class="quick-tags">
+          <button class="qtag" onclick="fillSearch('Алматы → Дубай, 5 күн')">🇦🇪 Дубай</button>
+          <button class="qtag" onclick="fillSearch('Алматы → Бангкок, 10 күн')">🇹🇭 Бангкок</button>
+          <button class="qtag" onclick="fillSearch('Алматы → Стамбул, 7 күн')">🇹🇷 Стамбул</button>
+          <button class="qtag" onclick="fillSearch('Алматы → Рим, 8 күн')">🇮🇹 Рим</button>
+        </div>
+      </div>
+    </div>
+    <div class="hero-stats">
+      <div class="stat-item"><span class="stat-n">12 400+</span><span class="stat-l">Жоспарланған саяхат</span></div>
+      <div class="stat-divider"></div>
+      <div class="stat-item"><span class="stat-n">84</span><span class="stat-l">Ел қамтылған</span></div>
+      <div class="stat-divider"></div>
+      <div class="stat-item"><span class="stat-n">4.9 ★</span><span class="stat-l">Пайдаланушы бағасы</span></div>
+    </div>
+  </section>
+
+  <!-- HOW IT WORKS -->
+  <section class="how-section" id="how">
+    <div class="container">
+      <div class="section-label">Қалай жұмыс істейді</div>
+      <h2 class="section-title">3 қадамда дайын жоспар</h2>
+      <div class="steps-grid">
+        <div class="step-card" data-step="01">
+          <div class="step-icon">✦</div>
+          <h3>Бағыт таңда</h3>
+          <p>Қайда барғыңызды, неше күн болатыныңызды және бюджетіңізді жазыңыз.</p>
+        </div>
+        <div class="step-arrow">→</div>
+        <div class="step-card" data-step="02">
+          <div class="step-icon">⟳</div>
+          <h3>ИИ жоспарлайды</h3>
+          <p>Жасанды интеллект саяхат маршруты, мейрамханалар мен қонақ үйлерді ұсынады.</p>
+        </div>
+        <div class="step-arrow">→</div>
+        <div class="step-card" data-step="03">
+          <div class="step-icon">✓</div>
+          <h3>Бар, рахаттан!</h3>
+          <p>Жоспарыңды сақта, достармен бөліс немесе PDF-ке жүктеп ал.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- DESTINATIONS -->
+  <section class="destinations" id="destinations">
+    <div class="container">
+      <div class="section-label">Танымал бағыттар</div>
+      <h2 class="section-title">Қазір тренд бағыттар</h2>
+      <div class="dest-grid">
+        <div class="dest-card large" onclick="goTo('plan.html?dest=istanbul')">
+          <div class="dest-img dest-istanbul"></div>
+          <div class="dest-info">
+            <div class="dest-tag">Тренд #1</div>
+            <h3>Стамбул</h3>
+            <p>7 күн · Тарих + Гастрономия</p>
+            <span class="dest-price">₸380 000 бастап</span>
+          </div>
+        </div>
+        <div class="dest-card" onclick="goTo('plan.html?dest=dubai')">
+          <div class="dest-img dest-dubai"></div>
+          <div class="dest-info">
+            <h3>Дубай</h3>
+            <p>5 күн</p>
+            <span class="dest-price">₸520 000</span>
+          </div>
+        </div>
+        <div class="dest-card" onclick="goTo('plan.html?dest=bangkok')">
+          <div class="dest-img dest-bangkok"></div>
+          <div class="dest-info">
+            <h3>Бангкок</h3>
+            <p>10 күн</p>
+            <span class="dest-price">₸290 000</span>
+          </div>
+        </div>
+        <div class="dest-card" onclick="goTo('plan.html?dest=rome')">
+          <div class="dest-img dest-rome"></div>
+          <div class="dest-info">
+            <h3>Рим</h3>
+            <p>6 күн</p>
+            <span class="dest-price">₸480 000</span>
+          </div>
+        </div>
+        <div class="dest-card" onclick="goTo('plan.html?dest=almaty')">
+          <div class="dest-img dest-almaty"></div>
+          <div class="dest-info">
+            <h3>Алматы (ішкі)</h3>
+            <p>3 күн</p>
+            <span class="dest-price">₸45 000</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FEATURES -->
+  <section class="features-section" id="features">
+    <div class="container">
+      <div class="section-label">Мүмкіндіктер</div>
+      <h2 class="section-title">Басқалардан ерекшелігіміз</h2>
+      <div class="features-grid">
+        <div class="feat-card feat-main">
+          <div class="feat-num">01</div>
+          <h3>ИИ Жоспаршы</h3>
+          <p>Бюджет пен уақытқа сай автоматты маршрут. Тамақ, көлік, мұражай — бәрі есептелген.</p>
+          <a href="plan.html" class="feat-link">Байқап көр →</a>
+        </div>
+        <div class="feat-card">
+          <div class="feat-num">02</div>
+          <h3>Интерактив Карта</h3>
+          <p>Барлық аялдамалар картада. Оффлайн режим қолдау.</p>
+        </div>
+        <div class="feat-card">
+          <div class="feat-num">03</div>
+          <h3>Бірге Жоспарлау</h3>
+          <p>Достармен нақты уақытта бірлесіп жоспарла.</p>
+        </div>
+        <div class="feat-card">
+          <div class="feat-num">04</div>
+          <h3>Бюджет Бақылауы</h3>
+          <p>Шығынды бақыла, ақша үнемдеу кеңестері.</p>
+        </div>
+        <div class="feat-card">
+          <div class="feat-num">05</div>
+          <h3>PDF Экспорт</h3>
+          <p>Маршрутты PDF-ке жүктеп офлайн пайдалан.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="cta-section">
+    <div class="cta-inner">
+      <h2>Бүгін бастауға дайынсың ба?</h2>
+      <p>Тегін тіркел. Картасыз. Жарнамасыз.</p>
+      <a href="register.html" class="btn-primary btn-large">Тегін тіркелу →</a>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="footer">
+    <div class="footer-inner">
+      <div class="footer-logo">Qazaq<span>Trip</span></div>
+      <div class="footer-links">
+        <a href="#">Туралы</a>
+        <a href="#">Байланыс</a>
+        <a href="#">Құпиялылық</a>
+        <a href="https://github.com" target="_blank">GitHub</a>
+      </div>
+      <div class="footer-copy">© 2025 QazaqTrip. Барлық құқықтар қорғалған.</div>
+    </div>
+  </footer>
+
+  <script src="src/styles/main.js"></script>
+</body>
+</html>
