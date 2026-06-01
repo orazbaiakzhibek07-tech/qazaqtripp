@@ -14,7 +14,7 @@ const planRoutes  = require('./routes/plans');
 const userRoutes  = require('./routes/users');
 
 const app = express();
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 8080;
 
 // ── Middleware ──
 app.use(cors({ origin: '*', credentials: false }));
