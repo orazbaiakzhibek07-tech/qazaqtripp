@@ -1,3 +1,5 @@
+
+// Жоспар моделі — саяхат жоспарын сақтайды
 // models/Plan.js
 const mongoose = require('mongoose');
 
