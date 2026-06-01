@@ -7,7 +7,7 @@ const rateLimit = require('express-rate-limit');
 const mongoose = require('mongoose');
 const passport = require('passport');
 
-require('./middleware/passport')(passport);
+
 
 const authRoutes  = require('./routes/auth');
 const planRoutes  = require('./routes/plans');
