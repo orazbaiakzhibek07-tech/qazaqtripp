@@ -7,8 +7,6 @@ const rateLimit = require('express-rate-limit');
 const mongoose = require('mongoose');
 const passport = require('passport');
 
-
-
 const authRoutes  = require('./routes/auth');
 const planRoutes  = require('./routes/plans');
 const userRoutes  = require('./routes/users');
