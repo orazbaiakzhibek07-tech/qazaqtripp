@@ -46,7 +46,7 @@ app.get('/api/health', (req, res) => {
 });
 
 // ── Database ──
-mongoose.connect(process.env.MONGO_URI || 'mongodb://localhost:27017/qazaqtrip')
+mongoose.connect(process.env.MONGO_URI || 'mongodb+srv://qazaqtrip:Qazaq2024%21@cluster0.pra3lzh.mongodb.net/qazaqtrip?appName=Cluster0')
   .then(() => {
     console.log('✅  MongoDB қосылды');
     app.listen(PORT, () => console.log(`🚀  Сервер http://localhost:${PORT} мекенжайында жұмыс істеуде`));
