@@ -2,10 +2,11 @@
 const mongoose = require('mongoose');
 const bcrypt   = require('bcryptjs');
 
+
 const UserSchema = new mongoose.Schema({
   name:     { type: String, required: true, trim: true },
   email:    { type: String, required: true, unique: true, lowercase: true, trim: true },
-  password: { type: String, select: false },         // null for GitHub users
+  password: { type: String, select: false },         // null for GitHub 
   githubId: { type: String, default: null },
   avatar:   { type: String, default: null },
   role:     { type: String, enum: ['user', 'admin'], default: 'user' },
@@ -18,8 +19,6 @@ UserSchema.pre('save', async function(next) {
   this.password = await bcrypt.hash(this.password, 12);
   next();
 });
-
-// Compare password
 UserSchema.methods.comparePassword = async function(candidate) {
   return bcrypt.compare(candidate, this.password);
 };
