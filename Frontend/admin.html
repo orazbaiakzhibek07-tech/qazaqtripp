@@ -1,0 +1,783 @@
+<!DOCTYPE html>
+<html lang="kk">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Админ — QazaqTrip</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=Cabinet+Grotesk:wght@300;400;500;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #0a0a0f;
+      --bg2: #111118;
+      --bg3: #18181f;
+      --accent: #1EB87A;
+      --accent2: #0d9e65;
+      --red: #ef4444;
+      --yellow: #f59e0b;
+      --blue: #3b82f6;
+      --text: #f0ede8;
+      --text2: #8a8790;
+      --text3: #52505a;
+      --border: rgba(255,255,255,0.07);
+      --border2: rgba(255,255,255,0.13);
+      --radius: 12px;
+      --font-display: 'Cormorant Garamond', serif;
+      --font-body: 'Cabinet Grotesk', sans-serif;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: var(--font-body); background: var(--bg); color: var(--text); display: flex; min-height: 100vh; }
+
+    /* SIDEBAR */
+    .sidebar {
+      width: 240px; flex-shrink: 0;
+      background: var(--bg2);
+      border-right: 1px solid var(--border);
+      display: flex; flex-direction: column;
+      position: fixed; top: 0; left: 0; bottom: 0;
+    }
+    .sidebar-logo {
+      padding: 1.5rem;
+      font-family: var(--font-display);
+      font-size: 20px; font-weight: 600;
+      border-bottom: 1px solid var(--border);
+    }
+    .sidebar-logo span { color: var(--accent); }
+    .sidebar-badge {
+      display: inline-block; font-size: 10px;
+      background: rgba(30,184,122,0.15); color: var(--accent);
+      border: 1px solid rgba(30,184,122,0.3);
+      padding: 2px 8px; border-radius: 10px;
+      margin-left: 8px; vertical-align: middle;
+    }
+    .sidebar-nav { padding: 1rem 0; flex: 1; }
+    .nav-label {
+      font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase;
+      color: var(--text3); padding: 0.5rem 1.5rem; margin-top: 0.5rem;
+    }
+    .nav-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 1.5rem; font-size: 14px;
+      color: var(--text2); cursor: pointer;
+      transition: all 0.2s; border-left: 2px solid transparent;
+    }
+    .nav-item:hover { color: var(--text); background: var(--bg3); }
+    .nav-item.active { color: var(--accent); border-left-color: var(--accent); background: rgba(30,184,122,0.06); }
+    .nav-item .icon { font-size: 16px; width: 20px; text-align: center; }
+    .sidebar-footer {
+      padding: 1rem 1.5rem;
+      border-top: 1px solid var(--border);
+      font-size: 13px; color: var(--text2);
+    }
+    .sidebar-footer a { color: var(--accent); cursor: pointer; }
+
+    /* MAIN */
+    .main { margin-left: 240px; flex: 1; display: flex; flex-direction: column; min-height: 100vh; }
+    .topbar {
+      padding: 1rem 2rem;
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+      background: var(--bg);
+      position: sticky; top: 0; z-index: 10;
+    }
+    .topbar-title { font-family: var(--font-display); font-size: 22px; }
+    .topbar-actions { display: flex; gap: 10px; align-items: center; }
+    .btn {
+      font-size: 13px; font-weight: 500; padding: 8px 16px;
+      border-radius: 8px; border: none; cursor: pointer;
+      font-family: var(--font-body); transition: all 0.2s;
+    }
+    .btn-primary { background: var(--accent); color: #fff; }
+    .btn-primary:hover { background: var(--accent2); }
+    .btn-ghost { background: var(--bg3); color: var(--text2); border: 1px solid var(--border2); }
+    .btn-ghost:hover { color: var(--text); }
+    .btn-danger { background: rgba(239,68,68,0.15); color: var(--red); border: 1px solid rgba(239,68,68,0.3); }
+    .btn-danger:hover { background: rgba(239,68,68,0.25); }
+    .btn-sm { font-size: 12px; padding: 5px 12px; }
+
+    .content { padding: 2rem; flex: 1; }
+
+    /* PAGES */
+    .page { display: none; }
+    .page.active { display: block; }
+
+    /* STAT CARDS */
+    .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 2rem; }
+    .stat-card {
+      background: var(--bg3); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 1.25rem;
+    }
+    .stat-card .label { font-size: 12px; color: var(--text2); margin-bottom: 8px; }
+    .stat-card .value { font-family: var(--font-display); font-size: 32px; font-weight: 600; }
+    .stat-card .change { font-size: 12px; margin-top: 4px; }
+    .change.up { color: var(--accent); }
+    .change.down { color: var(--red); }
+
+    /* TABLE */
+    .table-wrap {
+      background: var(--bg3); border: 1px solid var(--border);
+      border-radius: var(--radius); overflow: hidden; margin-bottom: 1.5rem;
+    }
+    .table-header {
+      padding: 1rem 1.5rem;
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .table-header h3 { font-size: 15px; font-weight: 500; }
+    table { width: 100%; border-collapse: collapse; }
+    th {
+      font-size: 11px; letter-spacing: 1px; text-transform: uppercase;
+      color: var(--text3); padding: 10px 1.5rem;
+      border-bottom: 1px solid var(--border);
+      text-align: left; background: var(--bg2);
+    }
+    td { padding: 12px 1.5rem; font-size: 13px; border-bottom: 1px solid var(--border); }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: rgba(255,255,255,0.02); }
+    .badge {
+      display: inline-block; font-size: 11px; padding: 2px 10px;
+      border-radius: 20px; font-weight: 500;
+    }
+    .badge-green { background: rgba(30,184,122,0.15); color: var(--accent); }
+    .badge-red { background: rgba(239,68,68,0.15); color: var(--red); }
+    .badge-yellow { background: rgba(245,158,11,0.15); color: var(--yellow); }
+    .badge-blue { background: rgba(59,130,246,0.15); color: var(--blue); }
+
+    /* FORM */
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+    .form-group { margin-bottom: 1rem; }
+    .form-label { display: block; font-size: 12px; color: var(--text2); margin-bottom: 6px; letter-spacing: 0.3px; }
+    .form-input, .form-select, .form-textarea {
+      width: 100%; background: var(--bg2);
+      border: 1px solid var(--border2); color: var(--text);
+      font-family: var(--font-body); font-size: 14px;
+      padding: 10px 14px; border-radius: 8px; outline: none;
+      transition: border-color 0.2s;
+    }
+    .form-input:focus, .form-select:focus, .form-textarea:focus {
+      border-color: rgba(30,184,122,0.5);
+    }
+    .form-input::placeholder, .form-textarea::placeholder { color: var(--text3); }
+    .form-select option { background: var(--bg2); }
+    .form-textarea { resize: vertical; min-height: 100px; }
+
+    /* MODAL */
+    .modal-overlay {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.7);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 100; opacity: 0; pointer-events: none;
+      transition: opacity 0.2s;
+    }
+    .modal-overlay.open { opacity: 1; pointer-events: all; }
+    .modal {
+      background: var(--bg3); border: 1px solid var(--border2);
+      border-radius: 16px; padding: 2rem; width: 100%; max-width: 560px;
+      transform: translateY(20px); transition: transform 0.2s;
+    }
+    .modal-overlay.open .modal { transform: translateY(0); }
+    .modal-title { font-family: var(--font-display); font-size: 24px; margin-bottom: 1.5rem; }
+    .modal-footer { display: flex; gap: 10px; justify-content: flex-end; margin-top: 1.5rem; }
+
+    /* SEARCH */
+    .search-bar {
+      display: flex; align-items: center; gap: 8px;
+      background: var(--bg2); border: 1px solid var(--border2);
+      border-radius: 8px; padding: 6px 12px;
+    }
+    .search-bar input {
+      background: transparent; border: none; outline: none;
+      font-size: 13px; color: var(--text); font-family: var(--font-body);
+      width: 200px;
+    }
+    .search-bar input::placeholder { color: var(--text3); }
+
+    /* CHART */
+    .chart-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 14px; margin-bottom: 1.5rem; }
+    .chart-card {
+      background: var(--bg3); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 1.25rem;
+    }
+    .chart-card h3 { font-size: 14px; color: var(--text2); margin-bottom: 1.25rem; }
+    .bar-chart { display: flex; align-items: flex-end; gap: 8px; height: 120px; }
+    .bar-wrap { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 6px; }
+    .bar {
+      width: 100%; background: rgba(30,184,122,0.3);
+      border-radius: 4px 4px 0 0;
+      border: 1px solid rgba(30,184,122,0.4);
+      transition: all 0.3s;
+      position: relative;
+    }
+    .bar:hover { background: rgba(30,184,122,0.5); }
+    .bar-label { font-size: 10px; color: var(--text3); }
+    .donut-wrap { display: flex; flex-direction: column; gap: 10px; justify-content: center; }
+    .donut-item { display: flex; align-items: center; gap: 10px; font-size: 13px; }
+    .donut-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+
+    /* DESTINATIONS GRID */
+    .dest-grid-admin { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+    .dest-card-admin {
+      background: var(--bg3); border: 1px solid var(--border);
+      border-radius: var(--radius); overflow: hidden;
+    }
+    .dest-img-admin {
+      height: 100px;
+    }
+    .dest-body { padding: 1rem; }
+    .dest-name { font-size: 15px; font-weight: 500; margin-bottom: 4px; }
+    .dest-meta { font-size: 12px; color: var(--text2); margin-bottom: 10px; }
+    .dest-actions { display: flex; gap: 6px; }
+
+    /* TOAST */
+    .toast {
+      position: fixed; bottom: 2rem; right: 2rem;
+      background: var(--bg3); border: 1px solid var(--border2);
+      border-radius: 10px; padding: 12px 20px;
+      font-size: 13px; z-index: 200;
+      transform: translateY(80px); opacity: 0;
+      transition: all 0.3s;
+    }
+    .toast.show { transform: translateY(0); opacity: 1; }
+    .toast.success { border-color: rgba(30,184,122,0.4); }
+    .toast.error { border-color: rgba(239,68,68,0.4); }
+
+    /* SECTION TITLE */
+    .section-title { font-family: var(--font-display); font-size: 20px; margin-bottom: 1.25rem; }
+
+    /* EMPTY STATE */
+    .empty { text-align: center; padding: 3rem; color: var(--text2); }
+    .empty .icon { font-size: 32px; margin-bottom: 1rem; }
+
+    @media (max-width: 900px) {
+      .sidebar { display: none; }
+      .main { margin-left: 0; }
+      .stats-grid { grid-template-columns: repeat(2, 1fr); }
+      .chart-grid { grid-template-columns: 1fr; }
+      .dest-grid-admin { grid-template-columns: 1fr 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    Qazaq<span>Trip</span>
+    <span class="sidebar-badge">Админ</span>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-label">Негізгі</div>
+    <div class="nav-item active" onclick="showPage('dashboard', this)">
+      <span class="icon">◈</span> Басқару тақтасы
+    </div>
+    <div class="nav-label">Мазмұн</div>
+    <div class="nav-item" onclick="showPage('destinations', this)">
+      <span class="icon">✦</span> Бағыттар
+    </div>
+    <div class="nav-label">Пайдаланушылар</div>
+    <div class="nav-item" onclick="showPage('users', this)">
+      <span class="icon">◎</span> Пайдаланушылар
+    </div>
+    <div class="nav-item" onclick="showPage('plans', this)">
+      <span class="icon">▦</span> Жоспарлар
+    </div>
+    <div class="nav-label">Жүйе</div>
+    <div class="nav-item" onclick="showPage('settings', this)">
+      <span class="icon">⚙</span> Баптаулар
+    </div>
+  </nav>
+  <div class="sidebar-footer">
+    <div style="font-size:12px;color:var(--text3);margin-bottom:6px">Кіргенсің:</div>
+    <div style="font-weight:500">Akzhibek Admin</div>
+    <div style="margin-top:8px"><a onclick="goToSite()">← Сайтқа қайту</a></div>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<div class="main">
+
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <div class="topbar-title" id="pageTitle">Басқару тақтасы</div>
+    <div class="topbar-actions">
+      <div class="search-bar">
+        <span style="color:var(--text3)">⊹</span>
+        <input type="text" placeholder="Іздеу..." id="globalSearch" oninput="handleSearch(this.value)" />
+      </div>
+      <button class="btn btn-primary" onclick="showAddModal()">+ Жаңа бағыт</button>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- ===== DASHBOARD ===== -->
+    <div class="page active" id="page-dashboard">
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="label">Жалпы пайдаланушылар</div>
+          <div class="value" id="statUsers">—</div>
+          <div class="change up">↑ +12 бұл ай</div>
+        </div>
+        <div class="stat-card">
+          <div class="label">Жалпы жоспарлар</div>
+          <div class="value" id="statPlans">—</div>
+          <div class="change up">↑ +34 бұл ай</div>
+        </div>
+        <div class="stat-card">
+          <div class="label">Бағыттар саны</div>
+          <div class="value" id="statDests">—</div>
+          <div class="change up">↑ +3 жаңа</div>
+        </div>
+        <div class="stat-card">
+          <div class="label">Белсенді сессиялар</div>
+          <div class="value">24</div>
+          <div class="change" style="color:var(--text2)">→ қазір</div>
+        </div>
+      </div>
+
+      <div class="chart-grid">
+        <div class="chart-card">
+          <h3>Ай бойынша жоспарлар</h3>
+          <div class="bar-chart" id="barChart"></div>
+        </div>
+        <div class="chart-card">
+          <h3>Танымал бағыттар</h3>
+          <div class="donut-wrap" id="donutChart"></div>
+        </div>
+      </div>
+
+      <div class="table-wrap">
+        <div class="table-header">
+          <h3>Соңғы тіркелгендер</h3>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>Аты-жөні</th>
+              <th>Email</th>
+              <th>Тіркелді</th>
+              <th>Жоспарлар</th>
+              <th>Күй</th>
+            </tr>
+          </thead>
+          <tbody id="recentUsers"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ===== DESTINATIONS ===== -->
+    <div class="page" id="page-destinations">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem">
+        <h2 class="section-title" style="margin:0">Бағыттар басқармасы</h2>
+        <button class="btn btn-primary" onclick="showAddModal()">+ Жаңа бағыт қосу</button>
+      </div>
+      <div class="dest-grid-admin" id="destGrid"></div>
+    </div>
+
+    <!-- ===== USERS ===== -->
+    <div class="page" id="page-users">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem">
+        <h2 class="section-title" style="margin:0">Пайдаланушылар</h2>
+        <span style="font-size:13px;color:var(--text2)" id="userCount"></span>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Аты-жөні</th>
+              <th>Email</th>
+              <th>Тіркелді</th>
+              <th>Жоспарлар</th>
+              <th>Рөл</th>
+              <th>Әрекет</th>
+            </tr>
+          </thead>
+          <tbody id="usersTable"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ===== PLANS ===== -->
+    <div class="page" id="page-plans">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem">
+        <h2 class="section-title" style="margin:0">Барлық жоспарлар</h2>
+        <span style="font-size:13px;color:var(--text2)" id="planCount"></span>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Жоспар</th>
+              <th>Пайдаланушы</th>
+              <th>Бағыт</th>
+              <th>Күндер</th>
+              <th>Бюджет</th>
+              <th>Жасалды</th>
+              <th>Әрекет</th>
+            </tr>
+          </thead>
+          <tbody id="plansTable"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ===== SETTINGS ===== -->
+    <div class="page" id="page-settings">
+      <h2 class="section-title">Баптаулар</h2>
+      <div style="max-width:560px">
+        <div class="table-wrap" style="padding:1.5rem">
+          <h3 style="font-size:15px;margin-bottom:1rem">Сайт ақпараты</h3>
+          <div class="form-group">
+            <label class="form-label">Сайт атауы</label>
+            <input class="form-input" value="QazaqTrip" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Сипаттама</label>
+            <textarea class="form-textarea">Саяхат жоспарлау жүйесі</textarea>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Backend API URL</label>
+            <input class="form-input" value="https://qazaqtripp-production.up.railway.app" />
+          </div>
+          <button class="btn btn-primary" onclick="showToast('✓ Баптаулар сақталды', 'success')">Сақтау</button>
+        </div>
+
+        <div class="table-wrap" style="padding:1.5rem;margin-top:1rem">
+          <h3 style="font-size:15px;margin-bottom:1rem">Статистика</h3>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+            <div style="background:var(--bg2);border-radius:8px;padding:12px">
+              <div style="font-size:11px;color:var(--text3);margin-bottom:4px">Серверде</div>
+              <div style="font-size:14px;color:var(--accent)">● Онлайн</div>
+            </div>
+            <div style="background:var(--bg2);border-radius:8px;padding:12px">
+              <div style="font-size:11px;color:var(--text3);margin-bottom:4px">Дерекқор</div>
+              <div style="font-size:14px;color:var(--accent)">● MongoDB</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ADD/EDIT DESTINATION MODAL -->
+<div class="modal-overlay" id="destModal">
+  <div class="modal">
+    <div class="modal-title" id="modalTitle">Жаңа бағыт қосу</div>
+    <div class="form-grid">
+      <div class="form-group">
+        <label class="form-label">Бағыт атауы (қаз)</label>
+        <input class="form-input" id="destName" placeholder="Стамбул" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Ел</label>
+        <input class="form-input" id="destCountry" placeholder="Түркия" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Emoji жалаушасы</label>
+        <input class="form-input" id="destEmoji" placeholder="🇹🇷" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Ұсынылатын күндер</label>
+        <input class="form-input" type="number" id="destDays" placeholder="7" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Бастапқы баға (₸)</label>
+        <input class="form-input" type="number" id="destPrice" placeholder="380000" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Категория</label>
+        <select class="form-select" id="destCategory">
+          <option value="Тарих + Гастрономия">Тарих + Гастрономия</option>
+          <option value="Люкс демалыс">Люкс демалыс</option>
+          <option value="Мәдениет">Мәдениет</option>
+          <option value="Тау + Табиғат">Тау + Табиғат</option>
+          <option value="Пляж">Пляж</option>
+          <option value="Шоппинг">Шоппинг</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Сипаттама</label>
+      <textarea class="form-textarea" id="destDesc" placeholder="Бағыт туралы қысқаша..."></textarea>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Күй</label>
+      <select class="form-select" id="destStatus">
+        <option value="active">Белсенді</option>
+        <option value="inactive">Өшірілген</option>
+        <option value="trending">Тренд</option>
+      </select>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal()">Бас тарту</button>
+      <button class="btn btn-primary" onclick="saveDestination()">Сақтау</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ========= STATE =========
+const API = 'https://qazaqtripp-production.up.railway.app';
+let destinations = JSON.parse(localStorage.getItem('admin_destinations') || 'null') || [
+  { id:1, name:'Стамбул', country:'Түркия', emoji:'🇹🇷', days:7, price:380000, category:'Тарих + Гастрономия', desc:'Тарихи орталық, базарлар, Босфор', status:'trending' },
+  { id:2, name:'Дубай', country:'БАЭ', emoji:'🇦🇪', days:5, price:520000, category:'Люкс демалыс', desc:'Заманауи мегаполис, люкс қонақ үйлер', status:'active' },
+  { id:3, name:'Бангкок', country:'Тайланд', emoji:'🇹🇭', days:10, price:290000, category:'Мәдениет', desc:'Храмдар, стрит-фуд, жарқын түндер', status:'active' },
+  { id:4, name:'Рим', country:'Италия', emoji:'🇮🇹', days:6, price:480000, category:'Тарих + Гастрономия', desc:'Колизей, Ватикан, паста', status:'active' },
+  { id:5, name:'Алматы', country:'Қазақстан', emoji:'🏔', days:3, price:45000, category:'Тау + Табиғат', desc:'Көктөбе, Медеу, Шымбұлақ', status:'active' },
+  { id:6, name:'Париж', country:'Франция', emoji:'🇫🇷', days:7, price:620000, category:'Мәдениет', desc:'Эйфель мұнарасы, Лувр, круассандар', status:'inactive' },
+];
+
+let mockUsers = [
+  { id:1, name:'Нұрлан Сейітов', email:'nurlan@mail.kz', createdAt:'2025-01-15', plans:3, role:'user' },
+  { id:2, name:'Айгерім Бекова', email:'aigul@mail.kz', createdAt:'2025-02-03', plans:7, role:'user' },
+  { id:3, name:'Данияр Ахметов', email:'daniyar@mail.kz', createdAt:'2025-02-20', plans:1, role:'user' },
+  { id:4, name:'Акжибек Оразбай', email:'orazbaiakzhibek07@gmail.com', createdAt:'2025-03-01', plans:12, role:'admin' },
+  { id:5, name:'Тілеубек Баян', email:'tilleubek@mail.kz', createdAt:'2025-03-10', plans:5, role:'user' },
+];
+
+let mockPlans = [
+  { id:1, title:'Алматы → Стамбул', user:'Нұрлан Сейітов', from:'Алматы', to:'Стамбул', days:7, budget:500000, createdAt:'2025-03-01' },
+  { id:2, title:'Алматы → Дубай', user:'Айгерім Бекова', from:'Алматы', to:'Дубай', days:5, budget:600000, createdAt:'2025-03-05' },
+  { id:3, title:'Алматы → Рим', user:'Акжибек Оразбай', from:'Алматы', to:'Рим', days:8, budget:750000, createdAt:'2025-03-10' },
+  { id:4, title:'Алматы → Бангкок', user:'Данияр Ахметов', from:'Алматы', to:'Бангкок', days:10, budget:400000, createdAt:'2025-03-12' },
+];
+
+let editingId = null;
+
+// ========= SAVE =========
+function saveDests() {
+  localStorage.setItem('admin_destinations', JSON.stringify(destinations));
+}
+
+// ========= NAVIGATION =========
+function showPage(id, el) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('page-' + id).classList.add('active');
+  if (el) el.classList.add('active');
+  const titles = { dashboard:'Басқару тақтасы', destinations:'Бағыттар', users:'Пайдаланушылар', plans:'Жоспарлар', settings:'Баптаулар' };
+  document.getElementById('pageTitle').textContent = titles[id] || id;
+  if (id === 'destinations') renderDests();
+  if (id === 'users') renderUsers();
+  if (id === 'plans') renderPlans();
+}
+
+// ========= DASHBOARD =========
+function renderDashboard() {
+  document.getElementById('statUsers').textContent = mockUsers.length;
+  document.getElementById('statPlans').textContent = mockPlans.length;
+  document.getElementById('statDests').textContent = destinations.length;
+
+  // Bar chart
+  const months = ['Қаң','Ақп','Нау','Сәу','Мам','Мау'];
+  const vals = [8, 15, 12, 20, 18, 34];
+  const max = Math.max(...vals);
+  document.getElementById('barChart').innerHTML = months.map((m, i) => `
+    <div class="bar-wrap">
+      <div class="bar" style="height:${(vals[i]/max)*100}px" title="${vals[i]} жоспар"></div>
+      <span class="bar-label">${m}</span>
+    </div>
+  `).join('');
+
+  // Donut
+  const top = [
+    { name:'Стамбул', pct:32, color:'#1EB87A' },
+    { name:'Дубай', pct:25, color:'#3b82f6' },
+    { name:'Бангкок', pct:20, color:'#f59e0b' },
+    { name:'Басқалар', pct:23, color:'#52505a' },
+  ];
+  document.getElementById('donutChart').innerHTML = top.map(t => `
+    <div class="donut-item">
+      <div class="donut-dot" style="background:${t.color}"></div>
+      <span style="flex:1">${t.name}</span>
+      <span style="color:var(--text2)">${t.pct}%</span>
+    </div>
+  `).join('');
+
+  // Recent users
+  document.getElementById('recentUsers').innerHTML = mockUsers.slice(-4).reverse().map(u => `
+    <tr>
+      <td>${u.name}</td>
+      <td style="color:var(--text2)">${u.email}</td>
+      <td style="color:var(--text2)">${u.createdAt}</td>
+      <td>${u.plans}</td>
+      <td><span class="badge ${u.role === 'admin' ? 'badge-blue' : 'badge-green'}">${u.role === 'admin' ? 'Админ' : 'Пайдаланушы'}</span></td>
+    </tr>
+  `).join('');
+}
+
+// ========= DESTINATIONS =========
+const gradients = {
+  'Стамбул': 'linear-gradient(135deg, #1a472a, #8B4513)',
+  'Дубай': 'linear-gradient(135deg, #c9a84c, #2c2416)',
+  'Бангкок': 'linear-gradient(135deg, #8B0000, #1a0505)',
+  'Рим': 'linear-gradient(135deg, #6B3A2A, #E8C49A)',
+  'Алматы': 'linear-gradient(135deg, #1B4332, #74C69D)',
+  'Париж': 'linear-gradient(135deg, #1a1a3e, #6B7DB3)',
+};
+
+function renderDests() {
+  const statusLabel = { active:'Белсенді', inactive:'Өшірілген', trending:'Тренд' };
+  const statusClass = { active:'badge-green', inactive:'badge-red', trending:'badge-yellow' };
+  document.getElementById('destGrid').innerHTML = destinations.map(d => `
+    <div class="dest-card-admin">
+      <div class="dest-img-admin" style="background:${gradients[d.name] || 'linear-gradient(135deg,#1a1a2e,#16213e)'}; display:flex; align-items:center; justify-content:center; font-size:36px">${d.emoji}</div>
+      <div class="dest-body">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+          <div class="dest-name">${d.name}</div>
+          <span class="badge ${statusClass[d.status]}">${statusLabel[d.status]}</span>
+        </div>
+        <div class="dest-meta">${d.country} · ${d.days} күн · ₸${(d.price/1000).toFixed(0)}K бастап</div>
+        <div class="dest-meta" style="margin-bottom:10px">${d.category}</div>
+        <div class="dest-actions">
+          <button class="btn btn-ghost btn-sm" onclick="editDest(${d.id})">✎ Өзгерту</button>
+          <button class="btn btn-danger btn-sm" onclick="deleteDest(${d.id})">✕ Жою</button>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function editDest(id) {
+  const d = destinations.find(x => x.id === id);
+  if (!d) return;
+  editingId = id;
+  document.getElementById('modalTitle').textContent = 'Бағытты өзгерту';
+  document.getElementById('destName').value = d.name;
+  document.getElementById('destCountry').value = d.country;
+  document.getElementById('destEmoji').value = d.emoji;
+  document.getElementById('destDays').value = d.days;
+  document.getElementById('destPrice').value = d.price;
+  document.getElementById('destCategory').value = d.category;
+  document.getElementById('destDesc').value = d.desc;
+  document.getElementById('destStatus').value = d.status;
+  document.getElementById('destModal').classList.add('open');
+}
+
+function deleteDest(id) {
+  if (!confirm('Бағытты жоясыз ба?')) return;
+  destinations = destinations.filter(x => x.id !== id);
+  saveDests();
+  renderDests();
+  renderDashboard();
+  showToast('✓ Бағыт жойылды', 'success');
+}
+
+function showAddModal() {
+  editingId = null;
+  document.getElementById('modalTitle').textContent = 'Жаңа бағыт қосу';
+  document.getElementById('destName').value = '';
+  document.getElementById('destCountry').value = '';
+  document.getElementById('destEmoji').value = '';
+  document.getElementById('destDays').value = '';
+  document.getElementById('destPrice').value = '';
+  document.getElementById('destDesc').value = '';
+  document.getElementById('destStatus').value = 'active';
+  document.getElementById('destModal').classList.add('open');
+  showPage('destinations', document.querySelector('.nav-item:nth-child(3)'));
+}
+
+function closeModal() {
+  document.getElementById('destModal').classList.remove('open');
+}
+
+function saveDestination() {
+  const name = document.getElementById('destName').value.trim();
+  if (!name) { showToast('Бағыт атауын жазыңыз!', 'error'); return; }
+  const d = {
+    id: editingId || Date.now(),
+    name,
+    country: document.getElementById('destCountry').value,
+    emoji: document.getElementById('destEmoji').value || '🌍',
+    days: parseInt(document.getElementById('destDays').value) || 7,
+    price: parseInt(document.getElementById('destPrice').value) || 0,
+    category: document.getElementById('destCategory').value,
+    desc: document.getElementById('destDesc').value,
+    status: document.getElementById('destStatus').value,
+  };
+  if (editingId) {
+    destinations = destinations.map(x => x.id === editingId ? d : x);
+    showToast('✓ Бағыт жаңартылды', 'success');
+  } else {
+    destinations.push(d);
+    showToast('✓ Жаңа бағыт қосылды', 'success');
+  }
+  saveDests();
+  closeModal();
+  renderDests();
+  renderDashboard();
+}
+
+// ========= USERS =========
+function renderUsers() {
+  document.getElementById('userCount').textContent = mockUsers.length + ' пайдаланушы';
+  document.getElementById('usersTable').innerHTML = mockUsers.map(u => `
+    <tr>
+      <td>${u.name}</td>
+      <td style="color:var(--text2)">${u.email}</td>
+      <td style="color:var(--text2)">${u.createdAt}</td>
+      <td>${u.plans}</td>
+      <td><span class="badge ${u.role === 'admin' ? 'badge-blue' : 'badge-green'}">${u.role === 'admin' ? 'Админ' : 'Пайдаланушы'}</span></td>
+      <td>
+        <button class="btn btn-danger btn-sm" onclick="blockUser(${u.id})">Бұғаттау</button>
+      </td>
+    </tr>
+  `).join('');
+}
+
+function blockUser(id) {
+  showToast('⚠ Пайдаланушы бұғатталды', 'error');
+}
+
+// ========= PLANS =========
+function renderPlans() {
+  document.getElementById('planCount').textContent = mockPlans.length + ' жоспар';
+  document.getElementById('plansTable').innerHTML = mockPlans.map(p => `
+    <tr>
+      <td>${p.title}</td>
+      <td style="color:var(--text2)">${p.user}</td>
+      <td>${p.from} → ${p.to}</td>
+      <td>${p.days} күн</td>
+      <td style="color:var(--accent)">₸${(p.budget/1000).toFixed(0)}K</td>
+      <td style="color:var(--text2)">${p.createdAt}</td>
+      <td>
+        <button class="btn btn-danger btn-sm" onclick="deletePlan(${p.id})">Жою</button>
+      </td>
+    </tr>
+  `).join('');
+}
+
+function deletePlan(id) {
+  if (!confirm('Жоспарды жоясыз ба?')) return;
+  mockPlans = mockPlans.filter(x => x.id !== id);
+  renderPlans();
+  renderDashboard();
+  showToast('✓ Жоспар жойылды', 'success');
+}
+
+// ========= SEARCH =========
+function handleSearch(val) {
+  if (!val) return;
+  showToast('Іздеу: ' + val, 'success');
+}
+
+// ========= TOAST =========
+function showToast(msg, type = 'success') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast ' + type + ' show';
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+// ========= NAVIGATION =========
+function goToSite() {
+  window.location.href = 'index.html';
+}
+
+// ========= INIT =========
+renderDashboard();
+</script>
+</body>
+</html>
